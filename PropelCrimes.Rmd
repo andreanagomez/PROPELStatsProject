@@ -1,0 +1,95 @@
+---
+title: "PROPEL Project"
+output: html_notebook
+---
+In this dataset, we look at crimes committed in Los Angeles from 2020 to Present.
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+#Uploading the Data
+```{r}
+Crimes <- read.csv("../Data/Crime_Data_from_2020_to_Present.csv")
+```
+
+#Selecting for data columns of interest
+```{r}
+Crimes2 <- Crimes %>% select(c(DATE.OCC, AREA.NAME, Crm.Cd.Desc))
+```
+
+#Summarizing how often crime occurred (measured by day)
+```{r}
+Crimes2.summary <- Crimes2 %>% group_by(DATE.OCC, AREA.NAME,Crm.Cd.Desc) %>% summarise(CrimeCount = n())
+```
+
+#Creating substring to format dates in order
+```{r}
+Crimes2$Date <- substr(Crimes2$DATE.OCC, 1, 10)
+```
+
+#Creating a date that R can interpret
+```{r}
+Crimes2$Date <- as.Date(Crimes2$Date, "%m/%d/%Y")
+```
+
+#Creating "Year" as our variable
+```{r}
+Crimes2$Year <- as.numeric(format(Crimes2$Date, "%Y"))
+```
+
+```{r}
+Crimes2$Years <- substr(Crimes2$DATE.OCC, 7, 10)
+```
+
+#Selecting for all characters that are related to "Theft" only
+```{r}
+Crimes2$Theft <- grepl("Theft", Crimes2$Crm.Cd.Desc, ignore.case = TRUE)
+```
+
+#Summarizes all data into values
+```{r}
+Crimes2.summary <- Crimes2 %>% group_by(Years, AREA.NAME,Theft) %>% summarise(CrimeCount = n())
+```
+
+#Filters out data not containing value of interest
+```{r}
+Crimes2.summary <- Crimes2 %>%
+  filter(Theft == TRUE)
+```
+
+#Merges recent selections for "Theft" data only, removes FALSE data
+```{r}
+Crimes2.summary <- Crimes2 %>% group_by(Years, AREA.NAME,Theft) %>% summarise(CrimeCount = n()) %>% filter(Theft == TRUE)
+```
+
+#Question: How often on average did theft occur in LA from 2020 to Present?
+```{r}
+ggplot(data = Crimes2.summary, aes(x = Years, y = CrimeCount)) + 
+  geom_boxplot() + 
+  geom_point()
+```
+#Selecting for data showing Burglary only
+```{r}
+Crimes2$Burglary <- grepl("Burglary", Crimes2$Crm.Cd.Desc, ignore.case = TRUE)
+```
+
+#Filtering data for Burglary
+```{r}
+Crimes2.summary <- Crimes2 %>%
+  filter(Burglary == TRUE)
+```
+
+#Summarizing data for Burglary
+```{r}
+Crimes2.summary <- Crimes2 %>% group_by(Years, AREA.NAME,Burglary) %>% summarise(CrimeCount = n()) %>% filter(Burglary == TRUE)
+```
+ 
+#How often on average did burglary occur in LA from 2020 to present?
+```{r}
+ggplot(data = Crimes2.summary, aes(x = Years, y = CrimeCount)) + 
+  geom_boxplot() + 
+  geom_point()
+```
+
